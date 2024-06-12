@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Code Finder</title>
+    <style>
+        body {
+            background-image: url('https://images.unsplash.com/photo-1542281286-9e0a16bb7366');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+        }
+        .main {
+            max-width: 600px;
+            margin: 50px auto;
+            margin-top: 70px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(30px);
+            box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.1), -2px -2px 2px rgba(255, 255, 255, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: white;
+            font-size: 40px;
+        }
+        .child_div1 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        #colorInput {
+            flex: 1;
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 10px;
+            font-size: large;
+        }
+        .child_div2 {
+            flex-shrink: 0;
+        }
+        #colorPicker1 {
+            width: 80px;
+            height: 50px;
+            border: none;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        #button, #resetButton {
+            width: 150px;
+            padding: 10px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 20px;
+            text-align: center;
+        }
+        #button {
+            background-color: rgb(16, 220, 16);
+        }
+        #resetButton {
+            background-color: rgb(220, 16, 16);
+        }
+        .color_display_div {
+            width: 100%;
+            height: 100px;
+            margin-top: 20px;
+        }
+        .values_display_div {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 20px;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        }
+        @media (max-width: 600px) {
+            .main {
+                margin: 20px;
+                padding: 10px;
+                margin-top: 50px;
+            }
+            h1{
+                font-size: 30px;
+            }
+            #colorInput {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            .child_div1 {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .child_div2 {
+                width: 100%;
+                text-align: center;
+            }
+            #colorPicker1 {
+                width: 100%;
+                height: 40px;
+            }
+            .buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .values_display_div{
+                color:white;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main" id="main_div">
+        <h1>Color Code Finder</h1>
+        <div class="child_div1">
+            <input type="text" id="colorInput" placeholder="Enter a Color or a Hex code">
+            <div class="child_div2">
+                <input type="color" id="colorPicker1" value="#ff0000">
+            </div>
+        </div>
+        <div class="buttons">
+            <button id="button">Convert</button>
+            <button id="resetButton">Reset</button>
+        </div>
+        <div id="colorDisplay" class="color_display_div"></div>
+        <div id="valuesDisplay" class="values_display_div"></div>
+    </div>
+
+    <script>
+        document.getElementById("button").addEventListener("click", function() {
+            const colorInput = document.getElementById("colorInput").value.trim();
+            const colorPicker = document.getElementById("colorPicker1").value;
+            let color = colorInput || colorPicker;
+
+            if (isValidColor(color)) {
+                if (!color.startsWith("#")) {
+                    const rgbColor = getComputedStyleColor(color);
+                    color = rgbToHex(rgbColor);
+                }
+
+                const rgb = hexToRgb(color);
+                const hex = rgbToHex(rgb);
+                const cmyk = rgbToCmyk(rgb);
+                const hsl = rgbToHsl(rgb);
+
+                document.getElementById('colorDisplay').style.backgroundColor = color;
+                document.getElementById('valuesDisplay').innerHTML = `
+                    <p><strong>RGB:</strong> RGB(${rgb.r}, ${rgb.g}, ${rgb.b})</p>
+                    <p><strong>HEX:</strong> ${hex}</p>
+                    <p><strong>CMYK:</strong> CMYK(${cmyk.c}%, ${cmyk.m}%, ${cmyk.y}%, ${cmyk.k}%)</p>
+                    <p><strong>HSL:</strong> HSL(${hsl.h}, ${hsl.s}%, ${hsl.l}%)</p>
+                `;
+            } else {
+                alert('Please enter a valid color name or HEX code.');
+            }
+        });
+
+        document.getElementById("resetButton").addEventListener("click", function() {
+            document.getElementById("colorInput").disabled = false;
+            document.getElementById("colorInput").value = "";
+            document.getElementById("colorPicker1").disabled = false;
+            document.getElementById("colorPicker1").value = "#ff0000";
+            document.getElementById("colorDisplay").style.backgroundColor = "";
+            document.getElementById("valuesDisplay").innerHTML = "";
+        });
+
+        document.getElementById("colorInput").addEventListener("input", function() {
+            document.getElementById("colorPicker1").disabled = this.value.trim().length > 0;
+        }); 
+
+        document.getElementById("colorPicker1").addEventListener("input", function() {
+            document.getElementById("colorInput").disabled = true;
+        });
+
+        function isValidColor(str) {
+            let s = new Option().style;
+            s.color = str;
+            return s.color !== "";
+        }
+
+        function getComputedStyleColor(color) {
+            let childDiv3 = document.createElement("div");
+            childDiv3.style.color = color;
+            document.body.appendChild(childDiv3);
+
+            let cs = window.getComputedStyle(childDiv3);
+            let pv = cs.getPropertyValue("color");
+
+            document.body.removeChild(childDiv3);
+
+            let rgbValues = pv.slice(pv.indexOf("(") + 1, pv.indexOf(")")).split(",").map(Number);
+            return {
+                r: rgbValues[0],
+                g: rgbValues[1],
+                b: rgbValues[2]
+            };
+        }
+
+        function hexToRgb(hex) {
+            let cleanedHex = hex.replace("#", "");
+            if (cleanedHex.length === 3) {
+                cleanedHex = cleanedHex.split("").map(c => c + c).join("");
+            }
+            let bigint = parseInt(cleanedHex, 16);
+            return {
+                r: (bigint >> 16) & 255,
+                g: (bigint >> 8) & 255,
+                b: bigint & 255
+            };
+        }
+
+        function rgbToHex({ r, g, b }) {
+            return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+        }
+
+        function rgbToCmyk({ r, g, b }) {
+            let c = 1 - (r / 255);
+            let m = 1 - (g / 255);
+            let y = 1 - (b / 255);
+            let k = Math.min(c, Math.min(m, y));
+            c = ((c - k) / (1 - k)) || 0;
+            m = ((m - k) / (1 - k)) || 0;
+            y = ((y - k) / (1 - k)) || 0;
+            return {
+                c: (c * 100).toFixed(0),
+                m: (m * 100).toFixed(0),
+                y: (y * 100).toFixed(0),
+                k: (k * 100).toFixed(0)
+            };
+        }
+
+        function rgbToHsl({ r, g, b }) {
+            r /= 255;
+            g /= 255;
+            b /= 255;
+            let max = Math.max(r, g, b);
+            let min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0; 
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r:
+                        h = (g - b) / d + (g < b ? 6 : 0);
+                        break;
+                    case g:
+                        h = (b - r) / d + 2;
+                        break;
+                    case b:
+                        h = (r - g) / d + 4;
+                        break;
+                }
+                h /= 6;
+            }
+
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+    </script>
+</body>
+</html>
